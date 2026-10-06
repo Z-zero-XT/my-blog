@@ -397,6 +397,13 @@
     </div>
   </div>
 
+  <!-- 自定义光标：圆点（近乎直跟）+ 圆环（缓动拖尾）。
+       纯装饰，aria-hidden 且 pointer-events:none；触屏 / 减少动态效果时不启用，保留系统光标 -->
+  <div class="cursor-layer" id="cursorLayer" aria-hidden="true">
+    <span class="cursor-ring" id="cursorRing"></span>
+    <span class="cursor-dot" id="cursorDot"></span>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>

@@ -3,8 +3,6 @@
    ---------------------------------------------------------------------------
    技术栈：原生 HTML / CSS / JS，无构建、无框架、无后端、无数据库，数据全部静态。
    文件结构：translations（双语字典） / 基础交互 / 交互增强层（IIFE）
-   说明：定稿版删除了「自定义光标」模块（恢复系统默认光标），
-         并移除了项目卡箭头等装饰元素。
    ========================================================================== */
 
 /* ---------- 双语字典（文案全部静态，无接口） ---------- */
@@ -165,8 +163,7 @@ navLinks.querySelectorAll("a").forEach(link => link.addEventListener("click", ()
 /* ==========================================================================
    交互增强层
    进度：明暗主题 / 玻璃质感强度 / 滚动进度与分区高亮 / 进入视口动效 /
-         项目卡 3D 倾斜 / 磁吸按钮 / 项目详情弹窗
-   （自定义光标已按设计定稿移除，使用系统默认光标）
+         项目卡 3D 倾斜 / 磁吸按钮 / 自定义光标 / 项目详情弹窗
    ========================================================================== */
 (function enhancementLayer() {
   "use strict";
@@ -671,6 +668,94 @@ navLinks.querySelectorAll("a").forEach(link => link.addEventListener("click", ()
     renderProjectModal(activeProjectId);
   }
 
+  /* ---------- 7. 自定义光标（飘逸跟随 + 悬停聚焦反馈） ---------- */
+  /* 圆点近乎直跟，圆环缓动拖尾并随速度沿运动方向轻微拉伸 —— 这就是“飘逸”的来源；
+     悬停可交互元素时圆环放大并转为强调色，明确标出当前焦点。
+     触屏 / 粗指针 / prefers-reduced-motion 下直接不接管，保留系统默认光标。 */
+  function initCursor() {
+    const layer = document.getElementById("cursorLayer");
+    const dot = document.getElementById("cursorDot");
+    const ring = document.getElementById("cursorRing");
+    if (!layer || !dot || !ring) return;
+    if (!finePointer || reducedMotion) return;
+
+    const HOT = 'a[href],button:not([disabled]),input:not([disabled]),select,textarea,[data-magnetic],[role="button"]';
+    const root = document.documentElement;
+    const DOT_EASE = 0.42;   // 圆点：跟得紧
+    const RING_EASE = 0.16;  // 圆环：拖得慢 → 拖尾
+    let tx = 0, ty = 0;      // 指针目标
+    let dx = 0, dy = 0;      // 圆点当前
+    let rx = 0, ry = 0;      // 圆环当前
+    let px = 0, py = 0;      // 上一帧圆环位置（算速度用）
+    let raf = null;
+    let active = false;
+
+    function render() {
+      dx += (tx - dx) * DOT_EASE;
+      dy += (ty - dy) * DOT_EASE;
+      rx += (tx - rx) * RING_EASE;
+      ry += (ty - ry) * RING_EASE;
+
+      const vx = rx - px, vy = ry - py;
+      const speed = Math.sqrt(vx * vx + vy * vy);
+      // 悬停时收敛为稳定的圆，只在快速移动时拉伸
+      const stretch = root.classList.contains("is-hovering") ? 0 : Math.min(speed / 110, 0.14);
+      const angle = speed > 0.4 ? Math.atan2(vy, vx) * 180 / Math.PI : 0;
+
+      dot.style.transform = "translate3d(" + dx.toFixed(2) + "px," + dy.toFixed(2) + "px,0)";
+      ring.style.transform =
+        "translate3d(" + rx.toFixed(2) + "px," + ry.toFixed(2) + "px,0) rotate(" + angle.toFixed(1) +
+        "deg) scale(" + (1 + stretch).toFixed(3) + "," + (1 - stretch * 0.55).toFixed(3) + ")";
+
+      px = rx; py = ry;
+
+      const settled =
+        Math.abs(tx - rx) < 0.15 && Math.abs(ty - ry) < 0.15 &&
+        Math.abs(tx - dx) < 0.15 && Math.abs(ty - dy) < 0.15;
+      raf = settled ? null : window.requestAnimationFrame(render);
+    }
+    function wake() { if (!raf) raf = window.requestAnimationFrame(render); }
+
+    function setActive(on) {
+      if (on === active) return;
+      active = on;
+      root.classList.toggle("has-custom-cursor", on);
+      if (!on) {
+        root.classList.remove("is-hovering", "is-pressed");
+        dot.style.transform = "translate3d(0,0,0)";
+        ring.style.transform = "translate3d(0,0,0)";
+      }
+    }
+
+    document.addEventListener("pointermove", e => {
+      if (e.pointerType !== "mouse" || reducedMotion) return;
+      tx = e.clientX; ty = e.clientY;
+      if (!active) {
+        // 首次出现：三个位置对齐，避免光标从左上角飞进来
+        dx = rx = px = tx; dy = ry = py = ty;
+        setActive(true);
+      }
+      wake();
+    }, { passive: true });
+
+    document.addEventListener("pointerover", e => {
+      if (e.pointerType && e.pointerType !== "mouse") return;
+      const el = e.target && e.target.closest ? e.target.closest(HOT) : null;
+      root.classList.toggle("is-hovering", !!el);
+    }, { passive: true });
+
+    document.addEventListener("pointerdown", () => { if (active) root.classList.add("is-pressed"); }, { passive: true });
+    document.addEventListener("pointerup", () => root.classList.remove("is-pressed"), { passive: true });
+
+    document.documentElement.addEventListener("mouseleave", () => setActive(false));
+    window.addEventListener("blur", () => root.classList.remove("is-pressed"));
+    document.addEventListener("visibilitychange", () => { if (document.hidden) setActive(false); });
+    onMediaChange(motionQuery, () => {
+      reducedMotion = motionQuery.matches;
+      if (reducedMotion) setActive(false);
+    });
+  }
+
   /* ---------- 初始化 ---------- */
   enhancementApi = { applyThemeLabel: applyThemeLabel, refreshOpenModal: refreshOpenModal };
 
@@ -681,6 +766,7 @@ navLinks.querySelectorAll("a").forEach(link => link.addEventListener("click", ()
     initReveal();
     initTilt();
     initMagnetic();
+    initCursor();
     initModal();
   } catch (err) {
     // 任何初始化异常都不应导致内容不可见：兜底显示全部区块

@@ -27,6 +27,7 @@
   --hair-2:rgba(0,0,0,.18);
   --accent:#0071e3;
   --accent-ink:#0066cc;
+  --accent-glow:rgba(0,113,227,.16);
   --btn-bg:#1d1d1f;
   --btn-ink:#ffffff;
   --scrim:rgba(0,0,0,.4);
@@ -82,6 +83,7 @@ html[data-theme="dark"]{
   --hair-2:rgba(255,255,255,.26);
   --accent:#2997ff;
   --accent-ink:#5ab0ff;
+  --accent-glow:rgba(41,151,255,.22);
   --btn-bg:#f5f5f7;
   --btn-ink:#1d1d1f;
   --scrim:rgba(0,0,0,.66);
@@ -653,12 +655,46 @@ html[data-theme="dark"] .project[data-tilt]:hover .project-visual::after{
   background:radial-gradient(340px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.16),transparent 62%);
 }
 
-/* 11c. 磁吸按钮 */
+/* 11c. 磁吸按钮（指针靠近产生吸附位移；按下时整体轻微收缩） */
 [data-magnetic]{
-  transform:translate3d(var(--mag-x,0px),var(--mag-y,0px),0);
-  transition:transform .45s var(--ease),opacity .24s ease,background-color .24s ease,color .24s ease;
+  transform:translate3d(var(--mag-x,0px),var(--mag-y,0px),0) scale(var(--mag-scale,1));
+  transition:transform .45s var(--ease),opacity .24s ease,background-color .24s ease,color .24s ease,box-shadow .24s ease;
 }
 [data-magnetic].is-magnetic-active{transition:transform .1s linear}
+[data-magnetic]:active{--mag-scale:.955}
+
+/* 11d. 自定义光标（圆点直跟 + 圆环缓动拖尾 → 飘逸感；悬停时放大并转为强调色 → 突出当前焦点） */
+.cursor-layer{position:fixed;inset:0;z-index:150;pointer-events:none;opacity:0;transition:opacity .25s ease}
+html.has-custom-cursor .cursor-layer{opacity:1}
+/* 接管光标：仅在 JS 成功启用后生效，脚本异常时不会出现“没有光标” */
+html.has-custom-cursor,
+html.has-custom-cursor *{cursor:none!important}
+.cursor-dot,.cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;will-change:transform}
+.cursor-dot{
+  width:6px;height:6px;margin:-3px 0 0 -3px;
+  background:var(--ink);
+  transition:width .2s var(--ease),height .2s var(--ease),margin .2s var(--ease),background-color .25s ease;
+}
+.cursor-ring{
+  width:32px;height:32px;margin:-16px 0 0 -16px;
+  border:1.5px solid var(--ink);opacity:.3;
+  transition:width .3s var(--ease),height .3s var(--ease),margin .3s var(--ease),
+             border-color .3s ease,opacity .3s ease,background-color .3s ease;
+}
+html.is-hovering .cursor-ring{
+  width:56px;height:56px;margin:-28px 0 0 -28px;
+  border-color:var(--accent);opacity:.9;
+  background:radial-gradient(circle,var(--accent-glow),transparent 70%);
+}
+html.is-hovering .cursor-dot{width:4px;height:4px;margin:-2px 0 0 -2px;background:var(--accent)}
+html.is-pressed .cursor-ring{width:26px;height:26px;margin:-13px 0 0 -13px;opacity:1}
+html.is-pressed .cursor-dot{width:9px;height:9px;margin:-4.5px 0 0 -4.5px}
+
+/* 11e. 全局可交互感：悬停/按下的统一微反馈 */
+.btn:hover{opacity:1;box-shadow:0 10px 26px -12px rgba(0,0,0,.5)}
+.btn-quiet:hover{box-shadow:none}
+.contact-item:active{transform:scale(.985)}
+.nav a:active,.footer-top:active,.text-link:active{opacity:.55}
 
 /* ---------- 12. 响应式降级 ---------- */
 @media(max-width:1000px){
@@ -731,9 +767,10 @@ html[data-theme="dark"] .project[data-tilt]:hover .project-visual::after{
 }
 
 /* ---------- 13. 无障碍 ---------- */
-/* 触屏 / 粗指针：关闭倾斜与磁吸（JS 端同步判断，这里作为兜底） */
+/* 触屏 / 粗指针：关闭倾斜、磁吸与自定义光标（JS 端同步判断，这里作为兜底） */
 @media(hover:none),(pointer:coarse){
   [data-magnetic]{transform:none!important}
+  .cursor-layer{display:none!important}
 }
 
 @media(prefers-reduced-motion:reduce){
@@ -751,4 +788,7 @@ html[data-theme="dark"] .project[data-tilt]:hover .project-visual::after{
   .glass-range::-webkit-slider-thumb{transition:none!important}
   .modal-dialog{opacity:1!important;transform:none!important}
   .scroll-cue::after{animation:none;top:0}
+  /* 减少动态效果：不接管光标，完全保留系统默认光标 */
+  .cursor-layer{display:none!important}
+  html.has-custom-cursor,html.has-custom-cursor *{cursor:auto!important}
 }

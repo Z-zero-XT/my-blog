@@ -58,24 +58,26 @@ python -m http.server 8000     # 然后访问 http://localhost:8000
 
 - **中英双语切换** —— `data-i18n` / `data-i18n-html` / `data-i18n-aria` + `translations` 对象，切换时同步刷新已打开的弹窗与作品卡无障碍名称
 - **明暗主题** —— 写入 `localStorage: quietfolio-theme`；首屏由 `<head>` 内联脚本在样式表之前预设，无闪烁；无存储偏好时跟随系统 `prefers-color-scheme`
+- **自定义光标** —— 圆点近乎直跟、圆环以更慢的缓动拖尾，并在快速移动时沿运动方向轻微拉伸（「飘逸」的来源）；悬停可交互元素时圆环放大到 56px、转为强调色并带上柔性光晕，明确标出当前焦点；按下时圆环收缩、圆点放大。**只在 `(hover: hover) and (pointer: fine)` 且未开启减少动态效果时接管**，其余情况一律保留系统光标；鼠标移出文档或页面失焦即刻归还
+- **磁吸按钮** —— `data-magnetic` + `data-magnetic-strength`，指针靠近产生吸附位移；按下时整体轻微收缩（`--mag-scale`）
+- **按钮悬停微交互** —— 主按钮悬停抬起阴影、联系胶囊悬停描边加深、导航与文字链按下变淡、卡片悬停描边加深 + 阴影抬起
 - **玻璃质感调节** —— 顶栏「玻璃质感」设置项，滑杆 0–100% 实时调整毛玻璃的透视强度（磨砂半径 / 饱和度 / 底面透明度 / 描边 / 折射高光同步变化），写入 `localStorage: quietfolio-glass`；同样由 `<head>` 内联脚本首屏预设，无跳变。点击外部或 Esc 关闭，焦点自动回到触发按钮
 - **滚动进度条** —— 顶栏下沿细线随滚动比例伸缩，并高亮当前分区导航项
 - **进入视口动效** —— `data-reveal="up|left|right|fade"` 四种方向，同组内按顺序交错触发
 - **项目卡 3D 倾斜** —— 跟随指针的 rotateX / rotateY（`data-tilt-max`，默认 7°），rAF 缓动；移出后交回 CSS 过渡自然复位；悬停时玻璃卡描边加深 + 阴影抬起
-- **磁吸按钮** —— `data-magnetic` + `data-magnetic-strength`，指针靠近产生吸附位移
 - **项目详情弹窗** —— 静态数据源渲染；Esc / 遮罩 / 关闭按钮三种关闭方式，滚动锁定，`inert` 背景隔离，Tab 焦点陷阱与关闭后焦点回填，支持上/下一个项目
 - **联系方式** —— 邮箱（`mailto:`）与 GitHub（外链，文字前带「跳转」提示）两项，均为直接跳转，无脚本依赖
 - **移动端折叠菜单**
 
 ## 无障碍与降级
 
-- 触屏 / 粗指针设备自动关闭 3D 倾斜与磁吸（JS 与 CSS 双重判断）
-- `prefers-reduced-motion: reduce` 时全部动效（含英雄区几何缓转）关闭，内容直接可见可操作
+- 触屏 / 粗指针设备自动关闭 3D 倾斜、磁吸与自定义光标（JS 与 CSS 双重判断）
+- `prefers-reduced-motion: reduce` 时全部动效（含英雄区几何缓转、滚动提示）关闭，内容直接可见可操作，且**不接管光标、保留系统默认光标**
 - 弹窗使用 `role="dialog"` + `aria-modal` + `aria-labelledby`，背景 `inert`
 - 作品卡整卡点击区是语义化 `<button>`，无障碍名称由标题动态拼装（如「查看详情：Quiet Space」）
 - 卡内几何插画为 `aria-hidden` + `pointer-events:none`，不参与朗读、不拦截点击
 - 提供「跳到主要内容」跳转链接与 `:focus-visible` 焦点样式
-- 使用系统默认光标（不接管、不隐藏）
+- 自定义光标为 `aria-hidden` + `pointer-events:none`，不进入无障碍树、不拦截点击；脚本异常时不会置位接管类名，因此不会出现「没有光标」的情况
 
 ## 建议先改的内容
 
@@ -92,6 +94,8 @@ python -m http.server 8000     # 然后访问 http://localhost:8000
 | 作品卡底色 | `styles.css` 的 `.visual-1 / .visual-2 / .visual-3` |
 | 作品卡几何插画 | `index.html` 里各 `.project-visual` 内的 `<svg class="visual-art">` |
 | 动效强度 | `index.html` 的 `data-tilt-max` / `data-magnetic-strength` |
+| 光标跟手速度与拖尾长度 | `script.js` 的 `DOT_EASE` / `RING_EASE` / 拉伸上限；尺寸与配色在 `styles.css` 的 `11d. 自定义光标` |
+| 光标在哪些元素上放大 | `script.js` 的 `HOT` 选择器 |
 
 ## 说明
 
