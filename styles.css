@@ -422,11 +422,10 @@ html[data-theme="dark"] .visual-3{background:linear-gradient(148deg,#171d19,#1e2
   margin-top:26px;max-width:38ch;
   font-size:clamp(16px,1.3vw,19px);line-height:1.85;color:var(--muted);
 }
-.contact .btn{margin-top:44px}
 
-/* 联系方式：几何图标 + 标签 + 值；QQ 可点击复制 */
+/* 联系方式：几何图标 + 标签 + 值（邮箱 / GitHub，均为直接跳转） */
 .contact-list{
-  margin-top:34px;display:flex;flex-wrap:wrap;justify-content:center;
+  margin-top:46px;display:flex;flex-wrap:wrap;justify-content:center;
   gap:12px 14px;
 }
 .contact-item{
@@ -443,6 +442,8 @@ html[data-theme="dark"] .visual-3{background:linear-gradient(148deg,#171d19,#1e2
 .contact-ico svg{display:block}
 .contact-link{display:inline-flex;align-items:baseline;gap:8px;text-align:left}
 .contact-label{font-size:13px;color:var(--muted)}
+/* 「跳转」前缀：提示这是外链，弱化处理，不抢值的视觉权重 */
+.contact-jump{font-size:13px;color:var(--muted)}
 .contact-value{font-size:14px;font-weight:500;color:var(--ink)}
 .contact-link:hover .contact-value{color:var(--accent)}
 
@@ -518,17 +519,6 @@ html.modal-locked{overflow:hidden}
   transition:background-color .22s ease,color .22s ease;
 }
 .modal-close:hover{background:var(--surface-2);color:var(--ink)}
-
-/* Toast */
-.toast{
-  position:fixed;left:50%;bottom:34px;z-index:120;
-  transform:translate(-50%,14px);
-  background:var(--ink);color:var(--bg);
-  font-size:14px;padding:12px 24px;border-radius:var(--r-pill);
-  opacity:0;pointer-events:none;
-  transition:opacity .3s ease,transform .3s var(--ease);
-}
-.toast.show{opacity:1;transform:translate(-50%,0)}
 
 /* 跳转链接 */
 .skip-link{
@@ -669,7 +659,7 @@ html[data-theme="dark"] .project[data-tilt]:hover .project-visual::after{
   .project-visual::after{display:none}
   .project[data-tilt]:hover .project-visual{box-shadow:none}
   [data-magnetic]{transform:none!important}
-  .modal-backdrop,.modal-dialog,.toast,.skip-link{transition:none!important}
+  .modal-backdrop,.modal-dialog,.skip-link{transition:none!important}
   .modal-dialog{opacity:1!important;transform:none!important}
   .scroll-cue::after{animation:none;top:0}
 }

@@ -56,7 +56,7 @@ python -m http.server 8000     # 然后访问 http://localhost:8000
 - **项目卡 3D 倾斜** —— 跟随指针的 rotateX / rotateY（`data-tilt-max`，默认 7°），rAF 缓动；移出后交回 CSS 过渡自然复位；悬停时玻璃卡描边加深 + 阴影抬起
 - **磁吸按钮** —— `data-magnetic` + `data-magnetic-strength`，指针靠近产生吸附位移
 - **项目详情弹窗** —— 静态数据源渲染；Esc / 遮罩 / 关闭按钮三种关闭方式，滚动锁定，`inert` 背景隔离，Tab 焦点陷阱与关闭后焦点回填，支持上/下一个项目
-- **联系方式** —— 邮箱 / QQ / GitHub 三项；邮箱与 QQ 点击即复制（含 Toast 提示），GitHub 外链
+- **联系方式** —— 邮箱（`mailto:`）与 GitHub（外链，文字前带「跳转」提示）两项，均为直接跳转，无脚本依赖
 - **移动端折叠菜单**
 
 ## 无障碍与降级
@@ -68,7 +68,6 @@ python -m http.server 8000     # 然后访问 http://localhost:8000
 - 卡内几何插画为 `aria-hidden` + `pointer-events:none`，不参与朗读、不拦截点击
 - 提供「跳到主要内容」跳转链接与 `:focus-visible` 焦点样式
 - 使用系统默认光标（不接管、不隐藏）
-- 复制功能优先用剪贴板 API，被拒绝时回退到 `execCommand`，两条路都失败才提示手动复制
 
 ## 建议先改的内容
 
@@ -76,7 +75,7 @@ python -m http.server 8000     # 然后访问 http://localhost:8000
 |---|---|
 | 昵称 / 英文名 | `index.html` 搜索 `沐风`（顶栏品牌、英雄标题、名片、页脚）+ `script.js` 的 `translations.*.heroTitle` |
 | 中英文案 | `script.js` 的 `translations.zh` / `translations.en` |
-| 邮箱 / QQ / GitHub | `script.js` 的 `CONTACT` 对象 + `index.html` 联系区的 `mailto:`、`data-copy`、`href` |
+| 邮箱 / GitHub | `index.html` 联系区（`mailto:` 与 `href`） |
 | 作品卡片文案 | `index.html` + `script.js` 的 `translations` |
 | 作品详情弹窗内容 | `script.js` 的 `projectDetails`（按 `项目 id + 语言` 维护） |
 | 配色 / 圆角 / 间距 / 字体栈 | `styles.css` 顶部 `:root` 与 `html[data-theme="dark"]` |

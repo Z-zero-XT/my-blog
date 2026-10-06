@@ -44,10 +44,7 @@ const translations = {
 
     contactTitle: '好想法，<br><span class="serif">值得聊一聊。</span>',
     contactText: "如果你也在创造什么，或者只是想交流一个有趣的想法，欢迎来打个招呼。",
-    copyEmail: "复制邮箱地址",
-    emailCopied: "邮箱地址已复制", qqCopied: "QQ 号已复制",
-    copyFailed: "复制失败，请手动复制：2927221562@qq.com",
-    contactEmailLabel: "邮箱", contactQqLabel: "QQ", contactGithubLabel: "GitHub", copyQq: "复制 QQ 号",
+    contactEmailLabel: "邮箱", contactGithubLabel: "GitHub", contactGithubJump: "跳转",
 
     footerLine: "用一点点好奇，构建自己的世界。",
     backTop: "回到顶部",
@@ -90,10 +87,7 @@ const translations = {
 
     contactTitle: 'Good ideas<br><span class="serif">are worth sharing.</span>',
     contactText: "Building something of your own, or just have an interesting thought? I’d love to hear from you.",
-    copyEmail: "Copy email address",
-    emailCopied: "Email address copied", qqCopied: "QQ number copied",
-    copyFailed: "Could not copy. Please copy manually: 2927221562@qq.com",
-    contactEmailLabel: "Email", contactQqLabel: "QQ", contactGithubLabel: "GitHub", copyQq: "Copy QQ number",
+    contactEmailLabel: "Email", contactGithubLabel: "GitHub", contactGithubJump: "Visit",
 
     footerLine: "A little curiosity goes a long way.",
     backTop: "Back to top",
@@ -160,63 +154,9 @@ navLinks.querySelectorAll("a").forEach(link => link.addEventListener("click", ()
   menuToggle.setAttribute("aria-expanded", "false");
 }));
 
-/* ---------- Toast + 联系方式复制（邮箱 / QQ） ---------- */
-/* 联系方式是静态数据源，集中在这里，改一处全站生效 */
-const CONTACT = { email: "2927221562@qq.com", qq: "2927221562", github: "Z-zero-XT" };
-
-const toast = document.getElementById("toast");
-let toastTimeout;
-function showToast(message) {
-  toast.textContent = message;
-  toast.classList.add("show");
-  clearTimeout(toastTimeout);
-  toastTimeout = setTimeout(() => toast.classList.remove("show"), 2400);
-}
-
-/* 传统复制方式（execCommand），用于剪贴板 API 不可用的场景：
-   非安全上下文（file:// 直接打开）、页面未获得焦点、被浏览器策略拒绝等 */
-function legacyCopy(text) {
-  const ta = document.createElement("textarea");
-  ta.value = text;
-  ta.setAttribute("readonly", "");
-  ta.style.position = "fixed";
-  ta.style.top = "-1000px";
-  ta.style.opacity = "0";
-  document.body.appendChild(ta);
-  ta.select();
-  let ok = false;
-  try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
-  document.body.removeChild(ta);
-  return ok;
-}
-
-/* 复制：优先剪贴板 API，失败再走回退；两条路都失败才提示手动复制 */
-async function copyText(text, successMessage) {
-  const dict = translations[currentLanguage];
-  let ok = false;
-  if (navigator.clipboard && window.isSecureContext) {
-    try {
-      await navigator.clipboard.writeText(text);
-      ok = true;
-    } catch (e) {
-      ok = false;
-    }
-  }
-  if (!ok) ok = legacyCopy(text);
-  showToast(ok ? (successMessage || dict.emailCopied) : dict.copyFailed);
-}
-
-document.getElementById("emailButton").addEventListener("click", () => {
-  copyText(CONTACT.email, translations[currentLanguage].emailCopied);
-});
-
-/* 任何带 data-copy 的元素都可点击复制（当前用于 QQ 号） */
-document.querySelectorAll("[data-copy]").forEach(el => {
-  el.addEventListener("click", () => {
-    const isQq = el.dataset.copy === CONTACT.qq;
-    copyText(el.dataset.copy, isQq ? translations[currentLanguage].qqCopied : null);
-  });
-});
+/* ---------- 联系方式 ---------- */
+/* 邮箱与 GitHub 直接写在 index.html 的联系区（静态数据源，无脚本依赖）。
+   原先的「复制邮箱 / 复制 QQ」功能与 Toast 组件已按设计定稿整体移除。 */
 
 /* ==========================================================================
    交互增强层
