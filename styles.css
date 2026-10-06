@@ -1,5 +1,5 @@
 /* ==========================================================================
-   张心田 · Personal Space — 样式表
+   沐风 · Personal Space — 样式表
    ---------------------------------------------------------------------------
    设计基调：Apple 式克制极简
      · 中性色主导 + 单一强调色，不堆叠装饰色
@@ -47,7 +47,7 @@
   /* 字体：UI 层用系统黑体；文字层（标题与正文）用楷/宋。全部系统字体，零网络请求、零 FOUT */
   --sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue","Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
   --serif:"LXGW WenKai","霞鹜文楷","STKaiti","Kaiti SC","KaiTi","楷体","Songti SC","STSong","Source Han Serif SC","Noto Serif CJK SC","Noto Serif SC","SimSun",serif;
-  /* 拉丁衬线：用于 Xintian Zhang 这类拉丁点缀 */
+  /* 拉丁衬线：用于 Mufeng 这类拉丁点缀 */
   --serif-latin:"Cormorant Garamond","EB Garamond",Georgia,"Times New Roman",serif;
 
   --page:1120px;

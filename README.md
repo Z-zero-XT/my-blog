@@ -1,4 +1,6 @@
-# 心田 · Personal Space
+# 沐风 · Personal Space
+
+> 站点地址：`https://z-zero-xt.github.io/my-blog/`（在 `index.html` 的 `<link rel="canonical">` 与 `og:url` 处维护，换域名只改这一处）
 
 一个无需数据库、可直接本地运行的中英双语个人作品集。纯 HTML + CSS + JavaScript，不需要安装依赖或构建工具。
 
@@ -38,7 +40,7 @@ python -m http.server 8000     # 然后访问 http://localhost:8000
 | `--card-line` | `rgba(0,0,0,.095)` | `rgba(255,255,255,.14)` | 玻璃卡描边 |
 | `--geo` | `rgba(29,29,31,.32)` | `rgba(245,245,247,.34)` | 几何线描 |
 
-- **字体分工（个性简约）**：文字层（标题 + 正文段落）使用楷/宋栈 `--serif`，UI 层（导航 / 按钮 / 标签 / 元信息）使用系统黑体 `--sans`；拉丁点缀（`Xintian Zhang`）另有拉丁衬线 `--serif-latin`。**全部为系统字体，不加载任何网络字体**，零 FOUT、离线可用、无第三方请求。
+- **字体分工（个性简约）**：文字层（标题 + 正文段落）使用楷/宋栈 `--serif`，UI 层（导航 / 按钮 / 标签 / 元信息）使用系统黑体 `--sans`；拉丁点缀（`Mufeng`）另有拉丁衬线 `--serif-latin`。**全部为系统字体，不加载任何网络字体**，零 FOUT、离线可用、无第三方请求。
   - 中文回退顺序：`LXGW WenKai / 霞鹜文楷 → STKaiti 华文楷体 → KaiTi 楷体 → Songti 宋体`。装了霞鹜文楷就自动用上，没装则用系统楷体，不会退化到无衬线。
 - **字号层级**：只有四级 —— 英雄标题 `clamp(40px,7.2vw,86px)` / 小节标题 `clamp(30px,4.1vw,52px)` / 正文 `17px` / 辅助 `13–15px`。全站没有任何小于 13px 的文字，也没有等宽大写微标签。
 - **栅格**：「关于 / 作品 / 随笔」三节共用同一条右侧栏竖线（`1fr : 0.92fr`），整页只有一条对齐基线。
@@ -72,7 +74,7 @@ python -m http.server 8000     # 然后访问 http://localhost:8000
 
 | 要改什么 | 在哪里 |
 |---|---|
-| 姓名 | `index.html` 搜索 `张心田`（正文、品牌、页脚、名片） |
+| 昵称 / 英文名 | `index.html` 搜索 `沐风`（顶栏品牌、英雄标题、名片、页脚）+ `script.js` 的 `translations.*.heroTitle` |
 | 中英文案 | `script.js` 的 `translations.zh` / `translations.en` |
 | 邮箱 / QQ / GitHub | `script.js` 的 `CONTACT` 对象 + `index.html` 联系区的 `mailto:`、`data-copy`、`href` |
 | 作品卡片文案 | `index.html` + `script.js` 的 `translations` |

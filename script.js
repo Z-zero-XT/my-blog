@@ -1,5 +1,5 @@
 /* ==========================================================================
-   张心田 · Personal Space — 脚本
+   沐风 · Personal Space — 脚本
    ---------------------------------------------------------------------------
    技术栈：原生 HTML / CSS / JS，无构建、无框架、无后端、无数据库，数据全部静态。
    文件结构：translations（双语字典） / 基础交互 / 交互增强层（IIFE）
@@ -14,7 +14,7 @@ const translations = {
     navAbout: "关于", navProjects: "作品", navNotes: "随笔", navContact: "联系",
     themeToggle: "切换明暗主题", themeLight: "切换到浅色主题", themeDark: "切换到深色主题",
 
-    heroTitle: '你好，我是<br><span class="serif">张心田。</span>',
+    heroTitle: '你好，我是<br><span class="serif">沐风。</span>',
     heroSubtitle: "在技术、设计与日常生活之间，保持好奇，慢慢构建自己喜欢的东西。",
     exploreWork: "看看我的作品", getToKnow: "认识一下",
 
@@ -60,7 +60,7 @@ const translations = {
     navAbout: "About", navProjects: "Work", navNotes: "Notes", navContact: "Contact",
     themeToggle: "Toggle light and dark theme", themeLight: "Switch to light theme", themeDark: "Switch to dark theme",
 
-    heroTitle: 'Hello, I’m<br><span class="serif">Xintian Zhang.</span>',
+    heroTitle: 'Hello, I’m<br><span class="serif">Mufeng.</span>',
     heroSubtitle: "Somewhere between technology, design, and everyday life — staying curious and building things I care about.",
     exploreWork: "See my work", getToKnow: "A little about me",
 
