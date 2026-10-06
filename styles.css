@@ -29,20 +29,31 @@
   --accent-ink:#0066cc;
   --btn-bg:#1d1d1f;
   --btn-ink:#ffffff;
-  --glass:rgba(251,251,253,.72);
   --scrim:rgba(0,0,0,.4);
   --shadow:0 24px 70px rgba(0,0,0,.16);
   --glow-a:rgba(0,113,227,.10);
   --glow-b:rgba(122,122,255,.08);
 
-  /* 玻璃卡：半透明底 + hairline 描边 + 柔和投影（作品卡 / principle 卡 / 名片共用） */
-  --card-bg:rgba(255,255,255,.62);
-  --card-line:rgba(0,0,0,.095);
-  --card-line-2:rgba(0,0,0,.19);
+  /* 玻璃面的柔和投影（与下方 --glass-* 令牌共同构成玻璃配方） */
   --card-shadow:0 1px 2px rgba(0,0,0,.03),0 18px 44px -20px rgba(0,0,0,.17);
   /* 几何线描色 */
   --geo:rgba(29,29,31,.32);
-  --geo-soft:rgba(29,29,31,.11);
+  --geo-soft:rgba(29,29,31,.14);
+
+  /* ---------- 玻璃质感 ----------
+     强度 --glass-k（0–1）由「玻璃质感」设置项写入，持久化在 localStorage: quietfolio-glass。
+     下面全部令牌都由它派生：一处调节，顶栏 / 玻璃卡 / 联系胶囊 / 弹窗遮罩同步变化。 */
+  --glass-k:.62;
+  --glass-blur:calc(4px + var(--glass-k) * 24px);    /* 磨砂半径：透视感主要由它决定 */
+  --glass-sat:calc(115% + var(--glass-k) * 65%);     /* 玻璃下色彩的饱和度提升 */
+  --glass-a:calc(.26 + var(--glass-k) * .38);        /* 玻璃底不透明度 */
+  --glass-line:calc(.05 + var(--glass-k) * .09);     /* 描边强度 */
+  --glass-line-2:calc(.1 + var(--glass-k) * .13);    /* 描边强度（悬停态） */
+  --glass-hi:calc(var(--glass-k) * .9);              /* 顶部折射高光 → 镜面感 */
+  --glass-inner:calc(var(--glass-k) * .05);          /* 底部内阴影 → 厚度 */
+  --glass-sheen:calc(var(--glass-k) * .34);          /* 斜向镜面反射 */
+  --glass-edge-rgb:0,0,0;                            /* 描边/内阴影的颜色基 */
+  --glass-body-rgb:255,255,255;                      /* 玻璃底面颜色基 */
 
   /* 字体：UI 层用系统黑体；文字层（标题与正文）用楷/宋。全部系统字体，零网络请求、零 FOUT */
   --sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue","Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
@@ -73,18 +84,44 @@ html[data-theme="dark"]{
   --accent-ink:#5ab0ff;
   --btn-bg:#f5f5f7;
   --btn-ink:#1d1d1f;
-  --glass:rgba(20,20,22,.72);
   --scrim:rgba(0,0,0,.66);
   --shadow:0 24px 70px rgba(0,0,0,.7);
   --glow-a:rgba(41,151,255,.16);
   --glow-b:rgba(122,122,255,.10);
-  --card-bg:rgba(255,255,255,.045);
-  --card-line:rgba(255,255,255,.14);
-  --card-line-2:rgba(255,255,255,.26);
   --card-shadow:0 1px 2px rgba(0,0,0,.45),0 22px 52px -22px rgba(0,0,0,.8);
   --geo:rgba(245,245,247,.34);
-  --geo-soft:rgba(245,245,247,.12);
+  --geo-soft:rgba(245,245,247,.15);
+  /* 深色玻璃：底面更薄、描边与折射更亮，才看得出玻璃而不是黑块 */
+  --glass-a:calc(.012 + var(--glass-k) * .05);
+  --glass-line:calc(.05 + var(--glass-k) * .13);
+  --glass-line-2:calc(.1 + var(--glass-k) * .16);
+  --glass-hi:calc(var(--glass-k) * .18);
+  --glass-inner:calc(var(--glass-k) * .26);
+  --glass-sheen:calc(var(--glass-k) * .12);
+  --glass-edge-rgb:255,255,255;
+  --glass-body-rgb:255,255,255;
   color-scheme:dark;
+}
+
+/* ---------- 1b. 玻璃表面配方（作品卡 / principle 卡 / 名片 / 联系胶囊共用） ----------
+   四条齐备才算玻璃：① 半透明底 ② 磨砂透视 ③ 双层描边（外 hairline + 顶部折射高光，底部内阴影）
+   ④ 柔和投影。厚度与透视强度全部由 --glass-k 派生，改一处全站同步。 */
+.profile,.principle,.project,.contact-item{
+  background:rgba(var(--glass-body-rgb),var(--glass-a));
+  backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));
+  border:1px solid rgba(var(--glass-edge-rgb),var(--glass-line));
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,var(--glass-hi)),
+    inset 0 -1px 0 0 rgba(var(--glass-edge-rgb),var(--glass-inner)),
+    var(--card-shadow);
+}
+/* 斜向镜面反射：玻璃面左上角的柔光。z-index:-1 让它落在卡片底色之上、文字之下，
+   父元素因 backdrop-filter 已形成层叠上下文，所以负层不会跑到卡片背后。 */
+.profile,.principle,.contact-item{position:relative}
+.profile::before,.principle::before,.contact-item::before{
+  content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(142deg,rgba(255,255,255,var(--glass-sheen)) 0%,rgba(255,255,255,0) 54%);
 }
 
 /* ---------- 2. 基础与排版 ---------- */
@@ -123,12 +160,14 @@ h1,h2,h3,p{font-family:var(--serif)}
 /* 拉丁点缀单独用拉丁衬线 */
 .serif-latin,.profile-en{font-family:var(--serif-latin)}
 
-/* 背景光晕：固定定位 → 不参与文档尺寸计算，绝不会撑宽布局视口 */
+/* 背景光晕：固定定位 → 不参与文档尺寸计算，绝不会撑宽布局视口。
+   三处光晕分布在首屏、中段与页尾，让玻璃面在整页都有可透视的色彩层次。 */
 .ambient{
   position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
     radial-gradient(54vw 54vw at 86% -8%,var(--glow-a),transparent 62%),
-    radial-gradient(48vw 48vw at -12% 64%,var(--glow-b),transparent 64%);
+    radial-gradient(48vw 48vw at -12% 64%,var(--glow-b),transparent 64%),
+    radial-gradient(42vw 42vw at 54% 116%,var(--glow-a),transparent 66%);
 }
 
 /* 主题切换时的短暂过渡（不作用于首屏，不阻塞渲染） */
@@ -159,13 +198,15 @@ h2{
 .site-header{
   position:fixed;top:0;left:0;right:0;z-index:60;
   height:var(--header-h);
-  background:var(--glass);
-  backdrop-filter:saturate(180%) blur(20px);
-  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  background:rgba(var(--glass-body-rgb),calc(var(--glass-k) * .42 + .18));
+  backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));
+  box-shadow:inset 0 -1px 0 0 rgba(var(--glass-edge-rgb),var(--glass-inner));
   border-bottom:1px solid transparent;
   transition:border-color .3s ease,background-color .3s ease;
 }
-.site-header.is-scrolled{border-bottom-color:var(--hair)}
+html[data-theme="dark"] .site-header{background:rgba(var(--glass-body-rgb),calc(var(--glass-k) * .06 + .02))}
+.site-header.is-scrolled{border-bottom-color:rgba(var(--glass-edge-rgb),var(--glass-line))}
 .header-inner{height:100%;display:flex;align-items:center;gap:26px}
 .brand{
   font-size:16px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;
@@ -207,6 +248,54 @@ html[data-theme="dark"] .theme-icon-moon{opacity:0;transform:rotate(70deg) scale
   transition:background-color .22s ease,color .22s ease;
 }
 .lang-btn:hover{background:var(--surface-2);color:var(--ink)}
+
+/* ---------- 玻璃质感设置项：图标按钮 + 下拉玻璃面板 ---------- */
+.glass-ctl{position:relative;display:flex}
+.glass-panel{
+  position:absolute;top:calc(100% + 14px);right:0;z-index:5;
+  width:min(264px,calc(100vw - var(--gutter) * 2));
+  padding:16px 18px 15px;
+  border-radius:var(--r-md);
+  background:rgba(var(--glass-body-rgb),var(--glass-a));
+  border:1px solid rgba(var(--glass-edge-rgb),var(--glass-line));
+  backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,var(--glass-hi)),
+    inset 0 -1px 0 0 rgba(var(--glass-edge-rgb),var(--glass-inner)),
+    0 24px 60px -24px rgba(0,0,0,.34);
+  visibility:hidden;opacity:0;transform:translateY(-6px);pointer-events:none;
+  transition:opacity .22s ease,transform .28s var(--ease),visibility 0s linear .28s;
+}
+.glass-panel.is-open{
+  visibility:visible;opacity:1;transform:none;pointer-events:auto;
+  transition:opacity .22s ease,transform .28s var(--ease),visibility 0s;
+}
+.glass-panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
+.glass-panel-title{font-size:14px;font-weight:600;color:var(--ink)}
+.glass-panel-val{font-size:13px;color:var(--accent);font-variant-numeric:tabular-nums}
+.glass-panel-hint{margin-top:11px;font-size:13px;line-height:1.6;color:var(--muted)}
+.glass-range{-webkit-appearance:none;appearance:none;display:block;width:100%;height:16px;background:none}
+.glass-range::-webkit-slider-runnable-track{
+  height:4px;border-radius:2px;
+  background:linear-gradient(90deg,var(--accent) var(--fill,62%),var(--hair-2) var(--fill,62%));
+}
+.glass-range::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:15px;height:15px;margin-top:-5.5px;border-radius:50%;
+  background:var(--surface);border:2px solid var(--accent);
+  box-shadow:0 1px 4px rgba(0,0,0,.22);
+  transition:transform .18s var(--ease);
+}
+.glass-range:active::-webkit-slider-thumb{transform:scale(1.14)}
+.glass-range::-moz-range-track{height:4px;border-radius:2px;background:var(--hair-2)}
+.glass-range::-moz-range-progress{height:4px;border-radius:2px;background:var(--accent)}
+.glass-range::-moz-range-thumb{
+  width:15px;height:15px;border-radius:50%;
+  background:var(--surface);border:2px solid var(--accent);
+  box-shadow:0 1px 4px rgba(0,0,0,.22);
+}
+.glass-range:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:4px}
 
 .menu-toggle{
   display:none;width:38px;height:38px;
@@ -302,11 +391,7 @@ html[data-theme="dark"] .theme-icon-moon{opacity:0;transform:rotate(70deg) scale
 
 /* 个人名片：版式参考「沐风」名片（圆头像 + 中英文姓名 + 简介 + 标签），配色全部改用本站令牌 */
 .profile{
-  border:1px solid var(--card-line);border-radius:var(--r-lg);
-  background:var(--card-bg);
-  backdrop-filter:blur(20px) saturate(160%);
-  -webkit-backdrop-filter:blur(20px) saturate(160%);
-  box-shadow:var(--card-shadow);
+  border-radius:var(--r-lg);
   padding:clamp(24px,2.6vw,32px);
 }
 .profile-avatar{
@@ -330,11 +415,7 @@ html[data-theme="dark"] .theme-icon-moon{opacity:0;transform:rotate(70deg) scale
   gap:clamp(20px,2.4vw,32px);
 }
 .principle{
-  border:1px solid var(--card-line);border-radius:var(--r-lg);
-  background:var(--card-bg);
-  backdrop-filter:blur(20px) saturate(160%);
-  -webkit-backdrop-filter:blur(20px) saturate(160%);
-  box-shadow:var(--card-shadow);
+  border-radius:var(--r-lg);
   padding:clamp(24px,2.4vw,30px);
 }
 .principle-ico{display:block;color:var(--accent);margin-bottom:20px}
@@ -354,14 +435,10 @@ html[data-theme="dark"] .theme-icon-moon{opacity:0;transform:rotate(70deg) scale
   gap:clamp(20px,2.6vw,36px);
   perspective:1400px;   /* 为卡片 3D 倾斜提供透视，避免在 transform 里重复写 perspective() */
 }
-/* 作品卡恢复上一版的玻璃卡片语言：半透明底 + hairline 描边 + 内衬视觉块 */
+/* 作品卡：玻璃卡片语言（配方见 1b），卡内再嵌一层视觉块 */
 .project{
   position:relative;
-  border:1px solid var(--card-line);border-radius:calc(var(--r-lg) + 12px);
-  background:var(--card-bg);
-  backdrop-filter:blur(20px) saturate(160%);
-  -webkit-backdrop-filter:blur(20px) saturate(160%);
-  box-shadow:var(--card-shadow);
+  border-radius:calc(var(--r-lg) + 12px);
   padding:12px;
 }
 .project-visual{
@@ -430,14 +507,11 @@ html[data-theme="dark"] .visual-3{background:linear-gradient(148deg,#171d19,#1e2
 }
 .contact-item{
   display:inline-flex;align-items:center;gap:10px;
-  border:1px solid var(--card-line);border-radius:var(--r-pill);
-  background:var(--card-bg);
-  backdrop-filter:blur(20px) saturate(160%);
-  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  border-radius:var(--r-pill);
   padding:9px 18px 9px 15px;
   transition:border-color .22s ease;
 }
-.contact-item:hover{border-color:var(--card-line-2)}
+.contact-item:hover{border-color:rgba(var(--glass-edge-rgb),var(--glass-line-2))}
 .contact-ico{display:grid;place-items:center;color:var(--accent)}
 .contact-ico svg{display:block}
 .contact-link{display:inline-flex;align-items:baseline;gap:8px;text-align:left}
@@ -469,7 +543,8 @@ html.modal-locked{overflow:hidden}
 .modal:not(.is-open){pointer-events:none}
 .modal-backdrop{
   position:absolute;inset:0;background:var(--scrim);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));
   opacity:0;transition:opacity .32s ease;
 }
 .modal.is-open .modal-backdrop{opacity:1}
@@ -555,11 +630,17 @@ html.modal-locked{overflow:hidden}
 }
 /* 悬停时卡片玻璃边加深 + 阴影抬起，与倾斜一起构成“卡片被拿起”的反馈 */
 .project[data-tilt]:hover{
-  border-color:var(--card-line-2);
-  box-shadow:0 2px 4px rgba(0,0,0,.04),0 30px 66px -26px rgba(0,0,0,.28);
+  border-color:rgba(var(--glass-edge-rgb),var(--glass-line-2));
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,var(--glass-hi)),
+    inset 0 -1px 0 0 rgba(var(--glass-edge-rgb),var(--glass-inner)),
+    0 2px 4px rgba(0,0,0,.04),0 30px 66px -26px rgba(0,0,0,.28);
 }
 html[data-theme="dark"] .project[data-tilt]:hover{
-  box-shadow:0 2px 6px rgba(0,0,0,.5),0 32px 72px -28px rgba(0,0,0,.92);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,var(--glass-hi)),
+    inset 0 -1px 0 0 rgba(var(--glass-edge-rgb),var(--glass-inner)),
+    0 2px 6px rgba(0,0,0,.5),0 32px 72px -28px rgba(0,0,0,.92);
 }
 /* 跟随指针的光泽层 */
 .project-visual::after{
@@ -605,6 +686,12 @@ html[data-theme="dark"] .project[data-tilt]:hover .project-visual::after{
   .nav a::after{display:none}
   .header-actions{margin-left:auto}
   .menu-toggle{display:flex;margin-left:4px}
+  /* 玻璃设置面板：窄屏改为相对视口定位，否则会从按钮右缘向左溢出屏幕 */
+  .glass-panel{
+    position:fixed;top:calc(var(--header-h) + 10px);
+    left:var(--gutter);right:var(--gutter);width:auto;
+  }
+  .header-inner{gap:12px}
   .about-grid,.work-head,.note{grid-template-columns:minmax(0,1fr);gap:26px}
   .about-text{max-width:52ch}
   .principles{grid-template-columns:minmax(0,1fr);gap:14px}
@@ -660,6 +747,8 @@ html[data-theme="dark"] .project[data-tilt]:hover .project-visual::after{
   .project[data-tilt]:hover .project-visual{box-shadow:none}
   [data-magnetic]{transform:none!important}
   .modal-backdrop,.modal-dialog,.skip-link{transition:none!important}
+  .glass-panel{transition:none!important;transform:none!important}
+  .glass-range::-webkit-slider-thumb{transition:none!important}
   .modal-dialog{opacity:1!important;transform:none!important}
   .scroll-cue::after{animation:none;top:0}
 }

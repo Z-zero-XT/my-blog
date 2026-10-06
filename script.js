@@ -13,6 +13,8 @@ const translations = {
     skipLink: "跳到主要内容",
     navAbout: "关于", navProjects: "作品", navNotes: "随笔", navContact: "联系",
     themeToggle: "切换明暗主题", themeLight: "切换到浅色主题", themeDark: "切换到深色主题",
+    glassToggle: "调整玻璃质感", glassTitle: "玻璃质感",
+    glassHint: "调高更厚重，调低更通透", glassRangeLabel: "玻璃质感强度",
 
     heroTitle: '你好，我是<br><span class="serif">沐风。</span>',
     heroSubtitle: "在技术、设计与日常生活之间，保持好奇，慢慢构建自己喜欢的东西。",
@@ -56,6 +58,8 @@ const translations = {
     skipLink: "Skip to content",
     navAbout: "About", navProjects: "Work", navNotes: "Notes", navContact: "Contact",
     themeToggle: "Toggle light and dark theme", themeLight: "Switch to light theme", themeDark: "Switch to dark theme",
+    glassToggle: "Adjust the glass effect", glassTitle: "Glass",
+    glassHint: "Higher is thicker, lower is clearer", glassRangeLabel: "Glass intensity",
 
     heroTitle: 'Hello, I’m<br><span class="serif">Mufeng.</span>',
     heroSubtitle: "Somewhere between technology, design, and everyday life — staying curious and building things I care about.",
@@ -160,7 +164,7 @@ navLinks.querySelectorAll("a").forEach(link => link.addEventListener("click", ()
 
 /* ==========================================================================
    交互增强层
-   进度：明暗主题 / 滚动进度与分区高亮 / 进入视口动效 /
+   进度：明暗主题 / 玻璃质感强度 / 滚动进度与分区高亮 / 进入视口动效 /
          项目卡 3D 倾斜 / 磁吸按钮 / 项目详情弹窗
    （自定义光标已按设计定稿移除，使用系统默认光标）
    ========================================================================== */
@@ -225,6 +229,71 @@ navLinks.querySelectorAll("a").forEach(link => link.addEventListener("click", ()
     btn.addEventListener("click", () => {
       setTheme(currentTheme() === "dark" ? "light" : "dark", true);
     });
+  }
+
+  /* ---------- 1b. 玻璃质感强度（可调 + 持久化 + 首屏无跳变） ---------- */
+  /* 只做一件事：把 0–100 的整数强度换算成 --glass-k（0–1）写到根元素上，
+     其余令牌（磨砂半径 / 饱和度 / 底面透明度 / 描边 / 折射高光）全部由 CSS 从它派生。 */
+  const GLASS_KEY = "quietfolio-glass";
+  const GLASS_DEFAULT = 62;
+
+  function applyGlass(value) {
+    const v = Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
+    document.documentElement.style.setProperty("--glass-k", (v / 100).toFixed(3));
+    const out = document.getElementById("glassValue");
+    if (out) out.textContent = v + "%";
+    const range = document.getElementById("glassRange");
+    if (range) range.style.setProperty("--fill", v + "%");
+    return v;
+  }
+
+  function initGlass() {
+    const btn = document.getElementById("glassToggle");
+    const panel = document.getElementById("glassPanel");
+    const range = document.getElementById("glassRange");
+    if (!btn || !panel || !range) return;
+
+    let stored = GLASS_DEFAULT;
+    try {
+      const raw = localStorage.getItem(GLASS_KEY);
+      if (raw !== null && raw !== "" && !isNaN(Number(raw))) stored = Number(raw);
+    } catch (e) { /* 隐私模式忽略 */ }
+    stored = Math.max(0, Math.min(100, Math.round(stored)));
+    range.value = String(stored);
+    applyGlass(stored);
+
+    function setOpen(open) {
+      panel.classList.toggle("is-open", open);
+      btn.setAttribute("aria-expanded", String(open));
+      try { panel.inert = !open; } catch (e) { /* 旧浏览器：visibility 已能移出 tab 序列 */ }
+      if (!open && panel.contains(document.activeElement)) btn.focus();
+    }
+
+    btn.addEventListener("click", () => {
+      const open = !panel.classList.contains("is-open");
+      setOpen(open);
+      if (open) range.focus();
+    });
+
+    // input 事件实时生效并落盘：拖动过程中界面即时变化，无需确认
+    range.addEventListener("input", () => {
+      const v = applyGlass(range.value);
+      try { localStorage.setItem(GLASS_KEY, String(v)); } catch (e) { /* 忽略 */ }
+    });
+
+    document.addEventListener("click", e => {
+      if (!panel.classList.contains("is-open")) return;
+      if (panel.contains(e.target) || btn.contains(e.target)) return;
+      setOpen(false);
+    });
+
+    document.addEventListener("keydown", e => {
+      if (e.key !== "Escape" || !panel.classList.contains("is-open")) return;
+      e.preventDefault();
+      setOpen(false);
+    });
+
+    setOpen(false);
   }
 
   /* ---------- 2. 滚动进度条 + 顶栏状态 + 导航当前分区高亮 ---------- */
@@ -607,6 +676,7 @@ navLinks.querySelectorAll("a").forEach(link => link.addEventListener("click", ()
 
   try {
     initTheme();
+    initGlass();
     initScrollUI();
     initReveal();
     initTilt();
