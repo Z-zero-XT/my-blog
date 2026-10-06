@@ -35,9 +35,20 @@
   --glow-a:rgba(0,113,227,.10);
   --glow-b:rgba(122,122,255,.08);
 
-  /* 系统字体栈：Latin 优先 SF Pro / Segoe UI，中文回落 PingFang SC / 微软雅黑 */
+  /* 玻璃卡：半透明底 + hairline 描边 + 柔和投影（作品卡 / principle 卡 / 名片共用） */
+  --card-bg:rgba(255,255,255,.62);
+  --card-line:rgba(0,0,0,.095);
+  --card-line-2:rgba(0,0,0,.19);
+  --card-shadow:0 1px 2px rgba(0,0,0,.03),0 18px 44px -20px rgba(0,0,0,.17);
+  /* 几何线描色 */
+  --geo:rgba(29,29,31,.32);
+  --geo-soft:rgba(29,29,31,.11);
+
+  /* 字体：UI 层用系统黑体；文字层（标题与正文）用楷/宋。全部系统字体，零网络请求、零 FOUT */
   --sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue","Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-  --serif:"Songti SC","STSong","Source Han Serif SC","Noto Serif CJK SC","Noto Serif SC","SimSun",Georgia,serif;
+  --serif:"LXGW WenKai","霞鹜文楷","STKaiti","Kaiti SC","KaiTi","楷体","Songti SC","STSong","Source Han Serif SC","Noto Serif CJK SC","Noto Serif SC","SimSun",serif;
+  /* 拉丁衬线：用于 Xintian Zhang 这类拉丁点缀 */
+  --serif-latin:"Cormorant Garamond","EB Garamond",Georgia,"Times New Roman",serif;
 
   --page:1120px;
   --gutter:clamp(22px,5vw,56px);
@@ -67,6 +78,12 @@ html[data-theme="dark"]{
   --shadow:0 24px 70px rgba(0,0,0,.7);
   --glow-a:rgba(41,151,255,.16);
   --glow-b:rgba(122,122,255,.10);
+  --card-bg:rgba(255,255,255,.045);
+  --card-line:rgba(255,255,255,.14);
+  --card-line-2:rgba(255,255,255,.26);
+  --card-shadow:0 1px 2px rgba(0,0,0,.45),0 22px 52px -22px rgba(0,0,0,.8);
+  --geo:rgba(245,245,247,.34);
+  --geo-soft:rgba(245,245,247,.12);
   color-scheme:dark;
 }
 
@@ -99,8 +116,12 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 ::selection{background:var(--accent);color:#fff}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px}
 
-/* 中文标题不需要负字距，英文标题需要；统一用很轻的负字距兼顾两者 */
-.serif{font-family:var(--serif);font-weight:400}
+/* 字体分工：文字层（标题 + 正文段落）用楷/宋，UI 层（导航 / 按钮 / 标签 / 元信息）
+   保持系统黑体。一条规则决定全站性格，不需要逐元素声明。 */
+h1,h2,h3,p{font-family:var(--serif)}
+.serif{font-family:var(--serif)}
+/* 拉丁点缀单独用拉丁衬线 */
+.serif-latin,.profile-en{font-family:var(--serif-latin)}
 
 /* 背景光晕：固定定位 → 不参与文档尺寸计算，绝不会撑宽布局视口 */
 .ambient{
@@ -209,7 +230,7 @@ html[data-theme="dark"] .theme-icon-moon{opacity:0;transform:rotate(70deg) scale
   padding:calc(var(--header-h) + 72px) 0 96px;
   position:relative;z-index:1;
 }
-.hero-inner{text-align:center}
+.hero-inner{position:relative;z-index:1;text-align:center}
 .hero-title{
   font-size:clamp(40px,7.2vw,86px);
   line-height:1.14;
@@ -240,6 +261,20 @@ html[data-theme="dark"] .theme-icon-moon{opacity:0;transform:rotate(70deg) scale
 }
 @keyframes cue{0%{top:-52px}60%,100%{top:52px}}
 
+/* 英雄区几何装饰：细描边圆 + 内接方，纯装饰，尺寸随视口收敛，不参与文档溢出 */
+.hero-geo{
+  position:absolute;top:50%;left:50%;z-index:0;
+  width:min(620px,88vw);aspect-ratio:1;
+  transform:translate(-50%,-50%);
+  color:var(--geo-soft);
+  pointer-events:none;
+}
+.hero-geo svg{display:block;width:100%;height:100%}
+@media(prefers-reduced-motion:no-preference){
+  .hero-geo svg{animation:geo-spin 120s linear infinite}
+}
+@keyframes geo-spin{to{transform:rotate(360deg)}}
+
 /* ---------- 按钮 ---------- */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;
@@ -263,15 +298,49 @@ html[data-theme="dark"] .theme-icon-moon{opacity:0;transform:rotate(70deg) scale
   display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.92fr);
   gap:clamp(28px,4.5vw,72px);align-items:start;
 }
-.about-lead p{font-size:17px;line-height:1.9;color:var(--muted)}
+.about-text{font-size:17px;line-height:1.95;color:var(--muted);margin-top:24px;max-width:38ch}
+
+/* 个人名片：版式参考「沐风」名片（圆头像 + 中英文姓名 + 简介 + 标签），配色全部改用本站令牌 */
+.profile{
+  border:1px solid var(--card-line);border-radius:var(--r-lg);
+  background:var(--card-bg);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  box-shadow:var(--card-shadow);
+  padding:clamp(24px,2.6vw,32px);
+}
+.profile-avatar{
+  width:60px;height:60px;border-radius:50%;
+  display:grid;place-items:center;margin-bottom:20px;
+  background:var(--btn-bg);color:var(--btn-ink);
+}
+.profile-avatar .serif{font-size:26px;line-height:1}
+.profile-name{
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  font-size:22px;font-weight:600;letter-spacing:-.01em;
+}
+.profile-en{font-size:14px;font-weight:400;color:var(--accent);letter-spacing:.05em}
+.profile-bio{font-size:15px;line-height:1.9;color:var(--muted);margin-top:12px}
+.profile-tags{display:flex;flex-wrap:wrap;gap:14px;margin-top:20px}
+.profile-tags li{font-size:13px;color:var(--ink-2)}
+
 .principles{
   margin-top:clamp(56px,7vw,104px);
   display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:clamp(24px,3.2vw,52px);
+  gap:clamp(20px,2.4vw,32px);
 }
-.principle{padding-top:24px;border-top:1px solid var(--hair)}
+.principle{
+  border:1px solid var(--card-line);border-radius:var(--r-lg);
+  background:var(--card-bg);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  box-shadow:var(--card-shadow);
+  padding:clamp(24px,2.4vw,30px);
+}
+.principle-ico{display:block;color:var(--accent);margin-bottom:20px}
+.principle-ico svg{display:block}
 .principle h3{font-size:19px;font-weight:600;letter-spacing:-.01em;margin-bottom:10px}
-.principle p{font-size:15px;line-height:1.8;color:var(--muted)}
+.principle p{font-size:15px;line-height:1.85;color:var(--muted)}
 
 /* ---------- 7. 作品 ---------- */
 .work-head{
@@ -285,12 +354,24 @@ html[data-theme="dark"] .theme-icon-moon{opacity:0;transform:rotate(70deg) scale
   gap:clamp(20px,2.6vw,36px);
   perspective:1400px;   /* 为卡片 3D 倾斜提供透视，避免在 transform 里重复写 perspective() */
 }
-.project{position:relative}
+/* 作品卡恢复上一版的玻璃卡片语言：半透明底 + hairline 描边 + 内衬视觉块 */
+.project{
+  position:relative;
+  border:1px solid var(--card-line);border-radius:calc(var(--r-lg) + 12px);
+  background:var(--card-bg);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  box-shadow:var(--card-shadow);
+  padding:12px;
+}
 .project-visual{
   position:relative;overflow:hidden;
   aspect-ratio:4/3;border-radius:var(--r-lg);
   background:var(--surface-2);
+  display:grid;place-items:center;
 }
+/* 卡内几何线描插画：纯装饰，必须让出点击（否则会盖住整卡按钮） */
+.visual-art{position:relative;z-index:1;width:82%;height:auto;display:block;color:var(--geo);pointer-events:none}
 /* 柔和的高光，让纯渐变有体积感 */
 .project-visual::before{
   content:"";position:absolute;inset:0;
@@ -306,15 +387,16 @@ html[data-theme="dark"] .visual-1{background:linear-gradient(148deg,#171a26,#1f2
 html[data-theme="dark"] .visual-2{background:linear-gradient(148deg,#211c18,#2b2420 50%,#171310)}
 html[data-theme="dark"] .visual-3{background:linear-gradient(148deg,#171d19,#1e2620 50%,#111612)}
 
-.project-body{padding:20px 2px 0}
+.project-body{padding:20px 10px 10px}
 .project-type{font-size:14px;color:var(--muted);margin-bottom:8px}
 .project h3{font-size:20px;font-weight:600;letter-spacing:-.01em}
 .project-desc{font-size:15px;line-height:1.75;color:var(--muted);margin-top:8px}
 
-/* 整卡点击区：语义化的 <button>，视觉上完全透明，不引入任何装饰 */
+/* 整卡点击区：语义化的 <button>，视觉上完全透明，不引入任何装饰。
+   z-index 必须高于卡内所有装饰层（几何插画 1 / 指针光泽 2），否则点在装饰上会点不到卡 */
 .project-open{
-  position:absolute;inset:0;width:100%;height:100%;
-  border-radius:var(--r-lg);opacity:0;
+  position:absolute;inset:0;width:100%;height:100%;z-index:3;
+  border-radius:calc(var(--r-lg) + 12px);opacity:0;
 }
 .project-open:focus-visible{outline:2px solid var(--accent);outline-offset:6px;opacity:1}
 
@@ -341,6 +423,28 @@ html[data-theme="dark"] .visual-3{background:linear-gradient(148deg,#171d19,#1e2
   font-size:clamp(16px,1.3vw,19px);line-height:1.85;color:var(--muted);
 }
 .contact .btn{margin-top:44px}
+
+/* 联系方式：几何图标 + 标签 + 值；QQ 可点击复制 */
+.contact-list{
+  margin-top:34px;display:flex;flex-wrap:wrap;justify-content:center;
+  gap:12px 14px;
+}
+.contact-item{
+  display:inline-flex;align-items:center;gap:10px;
+  border:1px solid var(--card-line);border-radius:var(--r-pill);
+  background:var(--card-bg);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  padding:9px 18px 9px 15px;
+  transition:border-color .22s ease;
+}
+.contact-item:hover{border-color:var(--card-line-2)}
+.contact-ico{display:grid;place-items:center;color:var(--accent)}
+.contact-ico svg{display:block}
+.contact-link{display:inline-flex;align-items:baseline;gap:8px;text-align:left}
+.contact-label{font-size:13px;color:var(--muted)}
+.contact-value{font-size:14px;font-weight:500;color:var(--ink)}
+.contact-link:hover .contact-value{color:var(--accent)}
 
 .site-footer{
   position:relative;z-index:1;
@@ -453,15 +557,20 @@ html.modal-locked{overflow:hidden}
 
 /* 11b. 项目卡 3D 倾斜（rAF 缓动；移出后交回 CSS 过渡自然复位） */
 .project[data-tilt]{
-  transition:opacity .85s var(--ease),transform .6s var(--ease);
+  transition:opacity .85s var(--ease),transform .6s var(--ease),box-shadow .5s var(--ease),border-color .5s var(--ease);
   transform-style:preserve-3d;
 }
-.project[data-tilt].is-tilting{transition:opacity .85s var(--ease)}
-.project[data-tilt] .project-visual{
-  transition:box-shadow .5s var(--ease);
+.project[data-tilt].is-tilting{
+  transition:opacity .85s var(--ease),box-shadow .5s var(--ease),border-color .5s var(--ease);
 }
-.project[data-tilt]:hover .project-visual{box-shadow:0 26px 60px rgba(0,0,0,.14)}
-html[data-theme="dark"] .project[data-tilt]:hover .project-visual{box-shadow:0 26px 60px rgba(0,0,0,.6)}
+/* 悬停时卡片玻璃边加深 + 阴影抬起，与倾斜一起构成“卡片被拿起”的反馈 */
+.project[data-tilt]:hover{
+  border-color:var(--card-line-2);
+  box-shadow:0 2px 4px rgba(0,0,0,.04),0 30px 66px -26px rgba(0,0,0,.28);
+}
+html[data-theme="dark"] .project[data-tilt]:hover{
+  box-shadow:0 2px 6px rgba(0,0,0,.5),0 32px 72px -28px rgba(0,0,0,.92);
+}
 /* 跟随指针的光泽层 */
 .project-visual::after{
   content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
@@ -506,13 +615,12 @@ html[data-theme="dark"] .project[data-tilt]:hover .project-visual::after{
   .nav a::after{display:none}
   .header-actions{margin-left:auto}
   .menu-toggle{display:flex;margin-left:4px}
-  .about-grid,.work-head,.note{grid-template-columns:minmax(0,1fr);gap:22px}
-  .principles{grid-template-columns:minmax(0,1fr);gap:0}
-  .principle{padding:22px 0;border-top:1px solid var(--hair)}
-  .principle:last-child{border-bottom:1px solid var(--hair)}
+  .about-grid,.work-head,.note{grid-template-columns:minmax(0,1fr);gap:26px}
+  .about-text{max-width:52ch}
+  .principles{grid-template-columns:minmax(0,1fr);gap:14px}
   /* 平板：仍保持双列，单列会让 4:3 的卡片被拉到近 750px 宽 */
   .projects{grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(20px,3vw,32px);perspective:none}
-  .project-body{padding-top:18px}
+  .project-body{padding:16px 8px 8px}
   .note{padding:26px 0}
   .note h3{margin-bottom:10px}
   .modal-dialog{grid-template-columns:minmax(0,1fr);max-height:92vh}
@@ -533,9 +641,16 @@ html[data-theme="dark"] .project[data-tilt]:hover .project-visual::after{
   .section{padding:76px 0}
   .hero{padding-top:calc(var(--header-h) + 52px)}
   .hero-sub{max-width:30ch}
+  /* 窄屏英雄区文字已经很满，几何装饰只会穿过正文，直接收掉 */
+  .hero-geo{display:none}
   .btn{padding:13px 24px;font-size:15px}
   .contact{padding:100px 0}
   .scroll-cue{height:38px;bottom:26px}
+  /* 窄屏：联系方式改为一列，避免三项挤成两行参差 */
+  .contact-list{flex-direction:column;align-items:stretch;gap:10px}
+  .contact-item{justify-content:flex-start}
+  .project{padding:10px}
+  .visual-art{width:86%}
 }
 
 /* ---------- 13. 无障碍 ---------- */

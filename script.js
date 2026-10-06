@@ -22,6 +22,8 @@ const translations = {
     aboutTitle: '不急着定义自己，<br><span class="serif">先持续探索。</span>',
     aboutText: "我喜欢把复杂的东西变简单，也喜欢把脑海里的点子一点点做出来。这个网站是我的数字据点——放作品、写笔记，也记录那些还在路上的念头。",
     moreAbout: "保持联系",
+    profileBio: "在技术与设计之间来回走，喜欢做减法，也喜欢把想法真的做出来。",
+    profileTag1: "#设计", profileTag2: "#开发", profileTag3: "#写作",
     principle1Title: "技术与创造", principle1Text: "用工具解决问题，也用工具打开新的可能。",
     principle2Title: "简洁与秩序", principle2Text: "减少不必要的复杂，让重要的东西更清晰。",
     principle3Title: "持续成长", principle3Text: "保持开放，持续学习，让每次尝试都有意义。",
@@ -43,7 +45,9 @@ const translations = {
     contactTitle: '好想法，<br><span class="serif">值得聊一聊。</span>',
     contactText: "如果你也在创造什么，或者只是想交流一个有趣的想法，欢迎来打个招呼。",
     copyEmail: "复制邮箱地址",
-    emailCopied: "邮箱地址已复制", copyFailed: "复制失败，请手动复制：hello@example.com",
+    emailCopied: "邮箱地址已复制", qqCopied: "QQ 号已复制",
+    copyFailed: "复制失败，请手动复制：2927221562@qq.com",
+    contactEmailLabel: "邮箱", contactQqLabel: "QQ", contactGithubLabel: "GitHub", copyQq: "复制 QQ 号",
 
     footerLine: "用一点点好奇，构建自己的世界。",
     backTop: "回到顶部",
@@ -64,6 +68,8 @@ const translations = {
     aboutTitle: 'In no rush to define myself,<br><span class="serif">just here to explore.</span>',
     aboutText: "I enjoy making complex things feel simple, and turning small ideas into real things. This site is my little corner of the internet — a home for projects, notes, and thoughts still finding their way.",
     moreAbout: "Get in touch",
+    profileBio: "Moving between technology and design — drawn to subtraction, and to actually making the idea real.",
+    profileTag1: "#Design", profileTag2: "#Code", profileTag3: "#Writing",
     principle1Title: "Technology & making", principle1Text: "Using tools to solve problems — and discover new possibilities.",
     principle2Title: "Clarity & simplicity", principle2Text: "Less unnecessary complexity. More room for what matters.",
     principle3Title: "Always learning", principle3Text: "Stay open, keep learning, and make every experiment count.",
@@ -85,7 +91,9 @@ const translations = {
     contactTitle: 'Good ideas<br><span class="serif">are worth sharing.</span>',
     contactText: "Building something of your own, or just have an interesting thought? I’d love to hear from you.",
     copyEmail: "Copy email address",
-    emailCopied: "Email address copied", copyFailed: "Could not copy. Please copy manually: hello@example.com",
+    emailCopied: "Email address copied", qqCopied: "QQ number copied",
+    copyFailed: "Could not copy. Please copy manually: 2927221562@qq.com",
+    contactEmailLabel: "Email", contactQqLabel: "QQ", contactGithubLabel: "GitHub", copyQq: "Copy QQ number",
 
     footerLine: "A little curiosity goes a long way.",
     backTop: "Back to top",
@@ -152,7 +160,10 @@ navLinks.querySelectorAll("a").forEach(link => link.addEventListener("click", ()
   menuToggle.setAttribute("aria-expanded", "false");
 }));
 
-/* ---------- Toast + 邮箱复制 ---------- */
+/* ---------- Toast + 联系方式复制（邮箱 / QQ） ---------- */
+/* 联系方式是静态数据源，集中在这里，改一处全站生效 */
+const CONTACT = { email: "2927221562@qq.com", qq: "2927221562", github: "Z-zero-XT" };
+
 const toast = document.getElementById("toast");
 let toastTimeout;
 function showToast(message) {
@@ -161,14 +172,50 @@ function showToast(message) {
   clearTimeout(toastTimeout);
   toastTimeout = setTimeout(() => toast.classList.remove("show"), 2400);
 }
-document.getElementById("emailButton").addEventListener("click", async () => {
-  const email = "hello@example.com";
-  try {
-    await navigator.clipboard.writeText(email);
-    showToast(translations[currentLanguage].emailCopied);
-  } catch (e) {
-    showToast(translations[currentLanguage].copyFailed);
+
+/* 传统复制方式（execCommand），用于剪贴板 API 不可用的场景：
+   非安全上下文（file:// 直接打开）、页面未获得焦点、被浏览器策略拒绝等 */
+function legacyCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed";
+  ta.style.top = "-1000px";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+  document.body.removeChild(ta);
+  return ok;
+}
+
+/* 复制：优先剪贴板 API，失败再走回退；两条路都失败才提示手动复制 */
+async function copyText(text, successMessage) {
+  const dict = translations[currentLanguage];
+  let ok = false;
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      ok = true;
+    } catch (e) {
+      ok = false;
+    }
   }
+  if (!ok) ok = legacyCopy(text);
+  showToast(ok ? (successMessage || dict.emailCopied) : dict.copyFailed);
+}
+
+document.getElementById("emailButton").addEventListener("click", () => {
+  copyText(CONTACT.email, translations[currentLanguage].emailCopied);
+});
+
+/* 任何带 data-copy 的元素都可点击复制（当前用于 QQ 号） */
+document.querySelectorAll("[data-copy]").forEach(el => {
+  el.addEventListener("click", () => {
+    const isQq = el.dataset.copy === CONTACT.qq;
+    copyText(el.dataset.copy, isQq ? translations[currentLanguage].qqCopied : null);
+  });
 });
 
 /* ==========================================================================
