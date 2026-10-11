@@ -1,6 +1,6 @@
 # 沐风 · Personal Space
 
-> 站点地址：`https://z-zero-xt.github.io/my-blog/`（在 `index.html` 的 `<link rel="canonical">` 与 `og:url` 处维护，换域名只改这一处）
+> 站点地址：`https://zmufeng.mooo.com/`（在 `index.html` 的 `<link rel="canonical">` 与 `og:url` 处维护，换域名只改这一处）
 
 一个无需数据库、可直接本地运行的中英双语个人作品集。纯 HTML + CSS + JavaScript，不需要安装依赖或构建工具。
 
